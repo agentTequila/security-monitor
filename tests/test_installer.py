@@ -52,3 +52,19 @@ def test_remove_install_dir(tmp_path):
     assert installer.remove_install_dir(target) is True
     assert not target.exists()
     assert installer.remove_install_dir(target) is False  # already gone
+
+
+def test_install_does_not_clobber_existing_config(tmp_path):
+    source = tmp_path / "portable.exe"
+    source.write_bytes(b"x")
+    first = tmp_path / "first.ini"
+    first.write_text("[email]\nsender = a@example.com\n", encoding="utf-8")
+    second = tmp_path / "second.ini"
+    second.write_text("[email]\nsender = other@example.com\n", encoding="utf-8")
+    target = tmp_path / "install"
+
+    installer.install(source, target, cfg_path=first)
+    installer.install(source, target, cfg_path=second)
+
+    deployed = (target / "config.ini").read_text(encoding="utf-8")
+    assert deployed == first.read_text(encoding="utf-8")

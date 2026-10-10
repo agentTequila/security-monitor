@@ -32,7 +32,7 @@ def install(
     if cfg_path is not None:
         cfg_source = Path(cfg_path)
         cfg_dest = target / "config.ini"
-        if cfg_source.exists() and cfg_source.resolve() != cfg_dest.resolve():
+        if not cfg_dest.exists() and cfg_source.exists() and cfg_source.resolve() != cfg_dest.resolve():
             shutil.copy2(cfg_source, cfg_dest)
 
     blacklist = target / "blacklist_software.txt"
