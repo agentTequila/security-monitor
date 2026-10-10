@@ -115,6 +115,13 @@ def delete_task(task_name: str = TASK_NAME, runner=subprocess.run) -> bool:
 
 
 def task_details(task_name: str = TASK_NAME, runner=subprocess.run) -> dict:
+    """Query a task's details.
+
+    Caveat: parses the English-locale labels of ``schtasks /Query /V``
+    (e.g. "Next Run Time", "Last Run Time", "Last Result"). On systems
+    with a non-English UI the lookup misses, so the corresponding keys
+    are absent from the returned dict; an absent task returns ``{}``.
+    """
     if not task_exists(task_name, runner=runner):
         return {}
     result = _run(runner, ["schtasks", "/Query", "/TN", task_name, "/FO", "LIST", "/V"])
