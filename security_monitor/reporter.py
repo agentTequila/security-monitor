@@ -104,15 +104,15 @@ def save_report(subject: str, body: str, reports_dir: str | Path, timestamp: str
 
 def purge_old_files(directory: str | Path, retention_days: int) -> int:
     target = Path(directory)
-    if not target.exists():
+    if not target.is_dir():
         return 0
     cutoff = time.time() - retention_days * 86400
     removed = 0
     for entry in target.iterdir():
-        if entry.is_file() and entry.stat().st_mtime < cutoff:
-            try:
+        try:
+            if entry.is_file() and entry.stat().st_mtime < cutoff:
                 entry.unlink()
                 removed += 1
-            except OSError:
-                continue
+        except OSError:
+            continue
     return removed

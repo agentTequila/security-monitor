@@ -1,4 +1,5 @@
 import os
+import pathlib
 import time
 
 from security_monitor import reporter
@@ -58,3 +59,33 @@ def test_purge_old_files(tmp_path):
 
 def test_purge_missing_dir_is_safe(tmp_path):
     assert reporter.purge_old_files(tmp_path / "nope", 30) == 0
+
+
+def test_purge_plain_file_path_is_safe(tmp_path):
+    plain = tmp_path / "plain.txt"
+    plain.write_text("x", encoding="utf-8")
+    assert reporter.purge_old_files(plain, 30) == 0
+    assert plain.exists()
+
+
+def test_purge_stat_error_skips_entry(tmp_path, monkeypatch):
+    report_a = tmp_path / "report_a.txt"
+    report_b = tmp_path / "report_b.txt"
+    report_a.write_text("a", encoding="utf-8")
+    report_b.write_text("b", encoding="utf-8")
+    ancient = time.time() - 40 * 86400
+    os.utime(report_a, (ancient, ancient))
+    os.utime(report_b, (ancient, ancient))
+    real_stat = pathlib.Path.stat
+
+    def flaky_stat(self, *args, **kwargs):
+        if self.name == "report_a.txt":
+            raise OSError("simulated stat failure")
+        return real_stat(self, *args, **kwargs)
+
+    monkeypatch.setattr(pathlib.Path, "stat", flaky_stat)
+    removed = reporter.purge_old_files(tmp_path, 30)
+    monkeypatch.undo()
+    assert removed == 1
+    assert report_a.exists()
+    assert not report_b.exists()
