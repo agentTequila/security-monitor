@@ -14,6 +14,7 @@ from security_monitor.installer import (
 )
 from security_monitor.task import (
     TASK_NAME,
+    TaskError,
     delete_task,
     register_task,
     task_exists,
@@ -73,23 +74,29 @@ def run_menu(
     output_fn=print,
 ) -> int:
     while True:
-        output_fn(MENU_TEXT)
-        choice = _ask_choice(input_fn, output_fn)
-        if choice == "0":
-            output_fn("Goodbye.")
+        try:
+            output_fn(MENU_TEXT)
+            choice = _ask_choice(input_fn, output_fn)
+            if choice == "0":
+                output_fn("Goodbye.")
+                return 0
+            if choice == "1":
+                _opt_install(Path(install_dir), input_fn, output_fn)
+            elif choice == "2":
+                _opt_status(Path(install_dir), input_fn, output_fn)
+            elif choice == "3":
+                _opt_settings(Path(install_dir), input_fn, output_fn)
+            elif choice == "4":
+                _opt_scan(Path(install_dir), input_fn, output_fn)
+            elif choice == "5":
+                _opt_uninstall(Path(install_dir), input_fn, output_fn)
+            else:
+                output_fn("Unknown option - try again.")
+        except (KeyboardInterrupt, EOFError):
+            output_fn("\nGoodbye.")
             return 0
-        if choice == "1":
-            _opt_install(Path(install_dir), input_fn, output_fn)
-        elif choice == "2":
-            _opt_status(Path(install_dir), input_fn, output_fn)
-        elif choice == "3":
-            _opt_settings(Path(install_dir), input_fn, output_fn)
-        elif choice == "4":
-            _opt_scan(Path(install_dir), input_fn, output_fn)
-        elif choice == "5":
-            _opt_uninstall(Path(install_dir), input_fn, output_fn)
-        else:
-            output_fn("Unknown option - try again.")
+        except (TaskError, OSError) as exc:
+            output_fn(f"Error: {exc}")
 
 
 def _opt_install(install_dir: Path, input_fn, output_fn) -> None:

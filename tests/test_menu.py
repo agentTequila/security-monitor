@@ -124,3 +124,48 @@ def test_menu_uninstall_removes_task_and_dir(monkeypatch, tmp_path):
     )
     assert '✔ Scheduled task "Security Monitor" removed.' in out
     assert calls["deleted"] and calls["removed"]
+
+
+def test_menu_ctrl_c_at_prompt_exits_cleanly():
+    out: list[str] = []
+    code = menu.run_menu(
+        install_dir=Path("C:/Security Monitor"),
+        input_fn=lambda: (_ for _ in ()).throw(KeyboardInterrupt),
+        output_fn=out.append,
+    )
+    assert code == 0
+    assert "Goodbye." in "\n".join(out)
+
+
+def test_menu_eof_at_prompt_exits_cleanly():
+    out: list[str] = []
+    code = menu.run_menu(
+        install_dir=Path("C:/Security Monitor"),
+        input_fn=lambda: (_ for _ in ()).throw(EOFError),
+        output_fn=out.append,
+    )
+    assert code == 0
+    assert "Goodbye." in "\n".join(out)
+
+
+def test_menu_task_error_reports_and_reprompts(monkeypatch):
+    from security_monitor.task import TaskError
+
+    def fake_delete(**kw):
+        raise TaskError("boom")
+
+    code, out = run_menu_scripted(
+        monkeypatch, ["5", "y", "0"],
+        task_exists=lambda **kw: True,
+        delete_task=fake_delete,
+        remove_install_dir=lambda p: True,
+    )
+    assert "Error: boom" in out
+    assert "Traceback" not in out
+    assert code == 0
+
+
+def test_menu_unknown_option_reprompts(monkeypatch):
+    code, out = run_menu_scripted(monkeypatch, ["99", "0"])
+    assert "Unknown option - try again." in out
+    assert code == 0
