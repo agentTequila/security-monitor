@@ -3125,7 +3125,7 @@ git -c user.name="Sujon" -c user.email="sujon@users.noreply.github.com" commit -
 - [ ] **Step 1: Write the README**
 
 `README.md`:
-```markdown
+~~~~markdown
 # Security Monitor
 
 Blacklist-based software monitoring for Windows and Linux: detects unauthorized
@@ -3280,7 +3280,7 @@ Layout: `security_monitor/` (package) · `tests/` (pytest suite) ·
 ## License
 
 MIT — see [LICENSE](LICENSE).
-```
+~~~~
 
 - [ ] **Step 2: Commit**
 
