@@ -12,6 +12,14 @@ from datetime import datetime
 import psutil
 
 
+def _format_uptime(boot_time: float, now: float) -> str:
+    total_seconds = max(int(now - boot_time), 0)
+    days, rem = divmod(total_seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return f"{days} days, {hours}:{minutes:02d}:{seconds:02d}"
+
+
 def collect_system_info() -> dict:
     try:
         hostname = socket.gethostname()
@@ -26,9 +34,11 @@ def collect_system_info() -> dict:
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.connect(("8.8.8.8", 80))
-            ip_address = sock.getsockname()[0]
-            sock.close()
+            try:
+                sock.connect(("8.8.8.8", 80))
+                ip_address = sock.getsockname()[0]
+            finally:
+                sock.close()
         except OSError:
             ip_address = "Unable to determine"
 
@@ -43,11 +53,7 @@ def collect_system_info() -> dict:
         memory = psutil.virtual_memory()
 
         boot_time = datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S")
-        uptime_seconds = time.time() - psutil.boot_time()
-        uptime = (
-            f"{int(uptime_seconds // 86400)} days, "
-            f"{int((uptime_seconds % 86400) // 3600)}:{int((uptime_seconds % 3600) // 60):02d}:00"
-        )
+        uptime = _format_uptime(psutil.boot_time(), time.time())
 
         disk_path = os.environ.get("SystemDrive", "C:") + "\\" if platform.system() == "Windows" else "/"
         disk = psutil.disk_usage(disk_path)
