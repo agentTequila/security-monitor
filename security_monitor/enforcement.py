@@ -35,6 +35,15 @@ def is_protected(name: str) -> bool:
     return (name or "").strip().lower() in PROTECT_NAMES
 
 
+def _identifier_protected(identifier: str) -> bool:
+    hay = (identifier or "").strip().lower()
+    if not hay:
+        return False
+    if hay in PROTECT_NAMES:
+        return True
+    return any(hay.startswith(p + "-") or hay.startswith(p + ".") for p in PROTECT_NAMES)
+
+
 def process_matches(name: str, exe: str, cmdline: str, patterns: list[str]) -> str | None:
     if is_protected(name) or is_protected(Path(exe).name if exe else ""):
         return None
@@ -82,7 +91,7 @@ def _stop_windows_services(patterns: list[str], dry_run: bool, log: logging.Logg
                 info = {"name": getattr(svc, "name", ""), "display_name": getattr(svc, "display_name", "")}
             name = str(info.get("name") or "")
             display = str(info.get("display_name") or "")
-            if is_protected(name) or is_protected(display):
+            if _identifier_protected(name) or _identifier_protected(display):
                 continue
             haystack = f"{name} {display}".lower()
             matched = next((p for p in patterns if p in haystack), None)
@@ -117,7 +126,7 @@ def _stop_linux_services(patterns: list[str], dry_run: bool, log: logging.Logger
         if not parts:
             continue
         unit = parts[0]
-        if is_protected(unit):
+        if _identifier_protected(unit):
             continue
         matched = next((p for p in patterns if p in unit.lower() or p in line.lower()), None)
         if not matched:
@@ -167,7 +176,11 @@ def _kill_matching_processes(patterns: list[str], dry_run: bool, logger: logging
                 target.wait(timeout=5)
             except psutil.TimeoutExpired:
                 target.kill()
-                target.wait(timeout=3)
+                try:
+                    target.wait(timeout=3)
+                except psutil.TimeoutExpired:
+                    log.error("Process %s (PID %s) did not exit after kill", name, pid)
+                    continue
             killed += 1
             log.warning("TERMINATED PROCESS: %s (PID %s) matched %r", name, pid, matched)
         except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:

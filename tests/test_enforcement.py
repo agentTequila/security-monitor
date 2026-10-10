@@ -66,3 +66,74 @@ def test_kill_skips_own_pid(monkeypatch, caplog):
     with caplog.at_level(logging.INFO, logger="test_enforcement"):
         enforcement._kill_matching_processes(["wireshark"], dry_run=True, logger=logger)
     assert "Would terminate" not in caplog.text
+
+
+def test_kill_timeout_after_kill_does_not_raise_and_not_counted(monkeypatch):
+    fakes = [FakeProc({"pid": 999999999, "name": "Wireshark.exe", "exe": "C:\\ws\\Wireshark.exe", "cmdline": []})]
+
+    class AlwaysTimeoutProc:
+        def __init__(self, pid):
+            self.pid = pid
+
+        def ppid(self):
+            return 1
+
+        def terminate(self):
+            pass
+
+        def kill(self):
+            pass
+
+        def wait(self, timeout=None):
+            raise enforcement.psutil.TimeoutExpired(timeout)
+
+    monkeypatch.setattr(enforcement.psutil, "process_iter", lambda attrs: iter(fakes))
+    monkeypatch.setattr(enforcement.psutil, "Process", AlwaysTimeoutProc)
+    logger = logging.getLogger("test_enforcement")
+    killed = enforcement._kill_matching_processes(["wireshark"], dry_run=False, logger=logger)
+    assert killed == 0
+
+
+def test_linux_protected_units_never_stopped(monkeypatch):
+    stop_calls = []
+
+    class FakeCompleted:
+        def __init__(self, stdout=""):
+            self.stdout = stdout
+            self.stderr = ""
+            self.returncode = 0
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:2] == ["systemctl", "list-units"]:
+            return FakeCompleted(
+                "  systemd-journald.service loaded active running System Journal Service\n"
+            )
+        if cmd[:2] == ["systemctl", "stop"]:
+            stop_calls.append(list(cmd))
+            return FakeCompleted()
+        return FakeCompleted()
+
+    monkeypatch.setattr(enforcement.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(enforcement.subprocess, "run", fake_run)
+    logger = logging.getLogger("test_enforcement")
+    stopped = enforcement._stop_matching_services(["system"], dry_run=False, logger=logger)
+    assert stopped == 0
+    assert stop_calls == []
+
+
+def test_windows_protected_service_never_stopped(monkeypatch):
+    stop_calls = []
+
+    class FakeService:
+        def as_dict(self):
+            return {"name": "systemd-junk", "display_name": "Systemd Junk"}
+
+        def stop(self):
+            stop_calls.append("stop")
+
+    monkeypatch.setattr(enforcement.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(enforcement.psutil, "win_service_iter", lambda: [FakeService()])
+    logger = logging.getLogger("test_enforcement")
+    stopped = enforcement._stop_matching_services(["system"], dry_run=False, logger=logger)
+    assert stopped == 0
+    assert stop_calls == []
