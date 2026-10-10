@@ -1,0 +1,25 @@
+nmap
+wireshark
+metasploit
+burp suite
+john the ripper
+hashcat
+aircrack
+sqlmap
+netcat
+putty
+teamviewer
+anydesk
+utorrent
+bittorrent
+limewire
+kazaa
+cheat engine
+process hacker
+keylogger
+remote desktop
+vnc
+tor browser
+proxifier
+charles proxy
+fiddler
