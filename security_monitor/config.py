@@ -107,31 +107,34 @@ def validate_config(cfg: Config) -> list[str]:
 def load_config(path: str | Path) -> Config:
     config_path = Path(path)
     parser = configparser.ConfigParser()
-    read = parser.read(config_path, encoding="utf-8")
-    if not read:
-        raise ConfigError(f"config not found: {config_path} - run --setup first")
+    try:
+        read = parser.read(config_path, encoding="utf-8")
+        if not read:
+            raise ConfigError(f"config not found: {config_path} - run --setup first")
 
-    recipients_raw = parser.get("email", "recipients", fallback="")
-    cfg = Config(
-        email=EmailConfig(
-            mode=parser.get("email", "mode", fallback="violations").strip().lower(),
-            sender=parser.get("email", "sender", fallback="").strip(),
-            recipients=[r.strip() for r in recipients_raw.split(",") if r.strip()],
-            app_password=parser.get("email", "app_password", fallback=""),
-            smtp_server=parser.get("email", "smtp_server", fallback="smtp.gmail.com").strip(),
-            smtp_port=parser.getint("email", "smtp_port", fallback=587),
-        ),
-        org=OrgConfig(
-            company_name=parser.get("org", "company_name", fallback="Cyber Sujon").strip(),
-            department=parser.get("org", "department", fallback="SOC").strip(),
-        ),
-        scan=ScanConfig(
-            enforce=_parse_bool(parser.get("scan", "enforce", fallback="false"), False),
-            interval_hours=parser.getint("scan", "interval_hours", fallback=4),
-            retention_days=parser.getint("scan", "retention_days", fallback=30),
-            blacklist_file=parser.get("scan", "blacklist_file", fallback="blacklist_software.txt").strip(),
-        ),
-    )
+        recipients_raw = parser.get("email", "recipients", fallback="")
+        cfg = Config(
+            email=EmailConfig(
+                mode=parser.get("email", "mode", fallback="violations").strip().lower(),
+                sender=parser.get("email", "sender", fallback="").strip(),
+                recipients=[r.strip() for r in recipients_raw.split(",") if r.strip()],
+                app_password=parser.get("email", "app_password", fallback=""),
+                smtp_server=parser.get("email", "smtp_server", fallback="smtp.gmail.com").strip(),
+                smtp_port=parser.getint("email", "smtp_port", fallback=587),
+            ),
+            org=OrgConfig(
+                company_name=parser.get("org", "company_name", fallback="Cyber Sujon").strip(),
+                department=parser.get("org", "department", fallback="SOC").strip(),
+            ),
+            scan=ScanConfig(
+                enforce=_parse_bool(parser.get("scan", "enforce", fallback="false"), False),
+                interval_hours=parser.getint("scan", "interval_hours", fallback=4),
+                retention_days=parser.getint("scan", "retention_days", fallback=30),
+                blacklist_file=parser.get("scan", "blacklist_file", fallback="blacklist_software.txt").strip(),
+            ),
+        )
+    except (configparser.Error, ValueError) as exc:
+        raise ConfigError(f"invalid config {config_path}: {exc}") from exc
     errors = validate_config(cfg)
     if errors:
         raise ConfigError(f"invalid config {config_path}: {'; '.join(errors)}")

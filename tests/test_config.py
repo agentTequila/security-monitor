@@ -37,6 +37,24 @@ def test_load_missing_file_raises(tmp_path):
         cfgmod.load_config(tmp_path / "nope.ini")
 
 
+def test_load_missing_section_header_raises(tmp_path):
+    path = tmp_path / "config.ini"
+    path.write_text("mode = violations\n", encoding="utf-8")
+    with pytest.raises(cfgmod.ConfigError):
+        cfgmod.load_config(path)
+
+
+def test_load_non_integer_smtp_port_raises(tmp_path):
+    path = tmp_path / "config.ini"
+    path.write_text(
+        "[email]\nmode = violations\nsender = me@gmail.com\n"
+        "recipients = a@b.com\napp_password = pw\nsmtp_port = abc\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(cfgmod.ConfigError):
+        cfgmod.load_config(path)
+
+
 def test_validate_defaults_to_valid():
     assert cfgmod.validate_config(_valid_cfg()) == []
 
