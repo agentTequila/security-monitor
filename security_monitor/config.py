@@ -106,7 +106,7 @@ def validate_config(cfg: Config) -> list[str]:
 
 def load_config(path: str | Path) -> Config:
     config_path = Path(path)
-    parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser(interpolation=None)
     try:
         read = parser.read(config_path, encoding="utf-8")
         if not read:
@@ -144,7 +144,7 @@ def load_config(path: str | Path) -> Config:
 def save_config(cfg: Config, path: str | Path) -> None:
     config_path = Path(path)
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser(interpolation=None)
     parser["email"] = {
         "mode": cfg.email.mode,
         "sender": cfg.email.sender,

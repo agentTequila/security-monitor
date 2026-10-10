@@ -32,6 +32,17 @@ def test_save_and_load_roundtrip(tmp_path):
     assert loaded.org.company_name == "Cyber Sujon"
 
 
+def test_save_and_load_roundtrip_with_percent_in_password(tmp_path):
+    path = tmp_path / "config.ini"
+    cfg = _valid_cfg()
+    cfg.email.app_password = "ab%cd ef%gh"
+    cfg.email.smtp_port = 465
+    cfgmod.save_config(cfg, path)
+    loaded = cfgmod.load_config(path)
+    assert loaded.email.app_password == "ab%cd ef%gh"
+    assert loaded.email.smtp_port == 465
+
+
 def test_load_missing_file_raises(tmp_path):
     with pytest.raises(cfgmod.ConfigError):
         cfgmod.load_config(tmp_path / "nope.ini")
