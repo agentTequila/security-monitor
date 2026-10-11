@@ -40,9 +40,16 @@ from security_monitor.task import TASK_NAME, task_details, task_exists
 
 EXIT_OK = 0
 EXIT_ERROR = 1
+EXIT_FATAL = EXIT_ERROR
 EXIT_VIOLATIONS = 2
 
 WINDOWS_INSTALL_CONFIG = Path(r"C:\Security Monitor\config.ini")
+
+
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:  # usage errors are fatal, not "violations"
+        self.print_usage(sys.stderr)
+        self.exit(EXIT_FATAL, f"{self.prog}: error: {message}\n")
 
 
 def resolve_config_path(arg: str | None) -> Path:
@@ -57,7 +64,7 @@ def resolve_config_path(arg: str | None) -> Path:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="security-monitor",
         description="Security Monitor - blacklist software scanning, opt-in enforcement, and email reporting",
     )
@@ -75,7 +82,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    try:
+        args = build_parser().parse_args(argv)
+    except SystemExit as exc:  # argparse usage/--help exits become return codes
+        code = exc.code
+        return code if isinstance(code, int) else EXIT_FATAL
     try:
         if args.setup:
             return cmd_setup(args)
