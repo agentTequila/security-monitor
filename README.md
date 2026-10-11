@@ -107,7 +107,7 @@ Created by `--setup` / menu option 1. Template: [`config.example.ini`](config.ex
 | `email.app_password` | — | Provider app password (never your login password) |
 | `email.smtp_server` | `smtp.gmail.com` | SMTP host |
 | `email.smtp_port` | `587` | `587` = STARTTLS, `465` = implicit SSL |
-| `org.company_name` | `Cyber Sujon` | Report header |
+| `org.company_name` | `agentTequila` | Report header |
 | `org.department` | `SOC` | Report header |
 | `scan.enforce` | `false` | Opt-in process/service termination |
 | `scan.interval_hours` | `4` | Task repetition (1-24) |

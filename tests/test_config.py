@@ -23,13 +23,13 @@ def test_save_and_load_roundtrip(tmp_path):
     path = tmp_path / "config.ini"
     cfg = _valid_cfg()
     cfg.scan.interval_hours = 6
-    cfg.org.company_name = "Cyber Sujon"
+    cfg.org.company_name = "agentTequila"
     cfgmod.save_config(cfg, path)
     loaded = cfgmod.load_config(path)
     assert loaded.email.sender == "me@gmail.com"
     assert loaded.email.recipients == ["soc@example.com"]
     assert loaded.scan.interval_hours == 6
-    assert loaded.org.company_name == "Cyber Sujon"
+    assert loaded.org.company_name == "agentTequila"
 
 
 def test_save_and_load_roundtrip_with_percent_in_password(tmp_path):
@@ -103,7 +103,7 @@ def test_load_invalid_file_raises(tmp_path):
 def test_wizard_writes_valid_config(tmp_path):
     answers = iter([
         "violations", "me@gmail.com", "a@b.com, c@d.com", "pw123",
-        "smtp.gmail.com", "587", "Cyber Sujon", "SOC",
+        "smtp.gmail.com", "587", "agentTequila", "SOC",
         "false", "4", "30", "blacklist_software.txt",
     ])
     out = []
@@ -122,7 +122,7 @@ def test_wizard_writes_valid_config(tmp_path):
 def test_wizard_aborts_when_email_test_fails_and_user_declines(tmp_path):
     answers = iter([
         "violations", "me@gmail.com", "a@b.com", "pw123",
-        "smtp.gmail.com", "587", "Cyber Sujon", "SOC",
+        "smtp.gmail.com", "587", "agentTequila", "SOC",
         "false", "4", "30", "blacklist_software.txt",
         "n",  # "Save anyway?" -> no
     ])

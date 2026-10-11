@@ -30,7 +30,7 @@ def build_task_xml(exe_path: str, interval_hours: int) -> str:
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Description>Security Monitor - scans for blacklisted software at boot and every {interval_hours}h.</Description>
-    <Author>Cyber Sujon</Author>
+    <Author>agentTequila</Author>
     <URI>\\Security Monitor</URI>
   </RegistrationInfo>
   <Triggers>

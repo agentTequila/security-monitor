@@ -21,7 +21,7 @@ smtp_server = smtp.gmail.com
 smtp_port = 587
 
 [org]
-company_name = Cyber Sujon
+company_name = agentTequila
 department = SOC
 
 [scan]
@@ -48,7 +48,7 @@ class EmailConfig:
 
 @dataclass
 class OrgConfig:
-    company_name: str = "Cyber Sujon"
+    company_name: str = "agentTequila"
     department: str = "SOC"
 
 
@@ -123,7 +123,7 @@ def load_config(path: str | Path) -> Config:
                 smtp_port=parser.getint("email", "smtp_port", fallback=587),
             ),
             org=OrgConfig(
-                company_name=parser.get("org", "company_name", fallback="Cyber Sujon").strip(),
+                company_name=parser.get("org", "company_name", fallback="agentTequila").strip(),
                 department=parser.get("org", "department", fallback="SOC").strip(),
             ),
             scan=ScanConfig(
