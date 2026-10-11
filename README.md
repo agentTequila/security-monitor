@@ -28,11 +28,13 @@ ships as a portable EXE that installs itself, registers a Task Scheduler job
 
 ## Quick start (Windows, EXE)
 
-1. Build the EXE (or use a released build):
+1. Download `security-monitor.exe` from the
+   [latest release](https://github.com/agentTequila/security-monitor/releases/latest),
+   or build it yourself:
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\build.ps1
    ```
-2. Double-click `dist\security-monitor.exe` (accept the UAC prompt).
+2. Double-click `security-monitor.exe` (accept the UAC prompt).
 3. Choose `1) Install / configure`:
    - the setup wizard asks for **sender email, recipients, app password**,
      SMTP server/port, organization, enforcement, scan interval, retention
