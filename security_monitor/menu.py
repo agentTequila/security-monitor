@@ -21,6 +21,12 @@ from security_monitor.task import (
 )
 
 MENU_TEXT = """
+    ______
+   /      \\
+  |  \\  /  |
+  |   \\/   |
+   \\      /
+    '----'
 Security Monitor
 ================
 1) Install / configure
