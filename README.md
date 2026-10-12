@@ -34,6 +34,11 @@ ships as a portable EXE that installs itself, registers a Task Scheduler job
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\build.ps1
    ```
+   The EXE is unsigned, so verify it before running it. The SHA-256 is posted in
+   the release notes:
+   ```powershell
+   Get-FileHash .\security-monitor.exe -Algorithm SHA256
+   ```
 2. Double-click `security-monitor.exe` (accept the UAC prompt).
 3. Choose `1) Install / configure`:
    - the setup wizard asks for **sender email, recipients, app password**,
